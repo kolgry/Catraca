@@ -1,45 +1,66 @@
+# main_app.py (Atualizado com Janela Maior para Câmeras)
 import tkinter as tk
 from tkinter import ttk
 
-def on_entrar_click():
-    print("Botão 'Entrar' clicado!")
+# Importa as classes das suas telas
+from BoasVindas import TelaBoasVindas
+from TelaCadastro import TelaCadastro
+from TelaCapturaFace import TelaCapturaFace
+from TelaReconhecimento import TelaReconhecimento
 
-def on_cadastro_click():
-    print("Botão 'Cadastro' clicado!")
+class App(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        self.title("Aplicativo Integrado")
+        self.geometry("600x550") # Tamanho inicial padrão
+        self.resizable(False, False)
 
-# Create the main window
-root = tk.Tk()
-root.title("Tela de Boas-Vindas")
-root.geometry("600x400") # Set a reasonable size for the window
-root.resizable(False, False) # Make the window not resizable for simplicity
+        container = tk.Frame(self)
+        container.pack(side="top", fill="both", expand=True)
+        container.grid_rowconfigure(0, weight=1)
+        container.grid_columnconfigure(0, weight=1)
 
-# Create a frame to hold the buttons, this helps with centering
-button_frame = ttk.Frame(root)
-button_frame.pack(expand=True) # Center the frame in the window
+        self.frames = {}
+        for F in (TelaBoasVindas, TelaCadastro, TelaCapturaFace, TelaReconhecimento):
+            page_name = F.__name__
+            frame = F(parent=container, controller=self)
+            self.frames[page_name] = frame
+            frame.grid(row=0, column=0, sticky="nsew")
 
-# Style for the buttons
-# You can customize these colors and fonts further
-button_style = {
-    "font": ("Arial", 24), # Larger font for the text
-    "width": 10,          # Set a fixed width for the buttons
-    "height": 3,          # Set a fixed height for the buttons
-    "relief": "solid",    # Give them a solid border
-    "borderwidth": 1      # Border width
-}
+        self.current_frame = None
 
-# Create the "Entrar" button (light gray background)
-entrar_button = tk.Button(button_frame, text="Entrar", command=on_entrar_click,
-                          bg="#D3D3D3", # Light gray
-                          fg="black",   # Black foreground (text)
-                          **button_style)
-entrar_button.pack(side=tk.LEFT, padx=50) # Pack to the left with some padding
+        self.show_frame("TelaBoasVindas")
 
-# Create the "Cadastro" button (light purple background)
-cadastro_button = tk.Button(button_frame, text="Cadastro", command=on_cadastro_click,
-                            bg="#CCCCFF", # Light purple
-                            fg="black",   # Black foreground (text)
-                            **button_style)
-cadastro_button.pack(side=tk.RIGHT, padx=50) # Pack to the right with some padding
+    def show_frame(self, page_name):
+        frame = self.frames[page_name]
 
-# Run the Tkinter event loop
-root.mainloop()
+        if self.current_frame:
+            if isinstance(self.current_frame, TelaCapturaFace) and self.current_frame.cam and self.current_frame.cam.isOpened():
+                self.current_frame.stop_capture_and_return()
+            elif isinstance(self.current_frame, TelaReconhecimento) and self.current_frame.cam and self.current_frame.cam.isOpened():
+                self.current_frame.stop_recognition_and_return()
+
+        frame.tkraise()
+        self.current_frame = frame
+
+        # Ajusta o tamanho da janela de acordo com a tela
+        if page_name == "TelaCapturaFace" or page_name == "TelaReconhecimento":
+            self.geometry("800x800") # <-- AUMENTADO A ALTURA AQUI PARA 800px
+            self.resizable(False, False)
+        else:
+            self.geometry("600x550")
+            self.resizable(False, False)
+
+    def show_face_capture_screen(self, person_name, ra):
+        capture_frame = self.frames["TelaCapturaFace"]
+        self.show_frame("TelaCapturaFace")
+        capture_frame.start_capture(person_name, ra)
+
+    def show_recognition_screen(self):
+        recognition_frame = self.frames["TelaReconhecimento"]
+        self.show_frame("TelaReconhecimento")
+        recognition_frame.start_recognition()
+
+if __name__ == "__main__":
+    app = App()
+    app.mainloop()

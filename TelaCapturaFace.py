@@ -8,11 +8,6 @@ import re
 import datetime
 
 
-# ==============================================================================
-# YOUR ORIGINAL HELPER FUNCTIONS AND DETECTOR SETUP
-# (Adjustments made to fit into the Tkinter class structure later)
-# ==============================================================================
-
 # A basic resize_video function, replace with your actual helper_functions.py if different
 def resize_video(width, height, max_width = 600):
   # max_width = in pixels. define the maximum width of the processed video.
@@ -236,7 +231,7 @@ class WebcamApp:
 
 
 # ==============================================================================
-# MAIN APPLICATION SETUP (from your original script)
+# MAIN APPLICATION SETUP 
 # ==============================================================================
 if __name__ == "__main__":
     ### Choose the face detector
